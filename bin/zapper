@@ -1,0 +1,63 @@
+#!/usr/bin/env coffee
+
+# Shamelessly ripped from brian-c's publisssh
+# https://npmjs.org/package/publisssh
+
+optimist = require 'optimist'
+path = require 'path'
+
+CWD = process.cwd()
+DEFAULT_CONFIG = 'zapper'
+
+options = optimist.usage('''
+  Usage:
+    zapper bucket/prefix
+''').options({
+  b: alias: 'bucket/prefix', description: 'AWS Bucket and prefix'
+
+  k: alias: 'key', description: 'AWS access key ID'
+  s: alias: 'secret', description: 'AWS secret access key'
+
+  c: alias: 'config', description: 'Configuration file (overridden by options)'
+  h: alias: 'help', description: 'Show these options'
+  v: alias: 'version', description: 'Show the version number'
+}).argv
+
+if options.help
+  optimist.showHelp()
+  process.exit 0
+
+else if options.version
+  { version } = require '../package'
+  console.log version
+  process.exit 0
+
+else
+  path = require 'path'
+  Zapper = require '../lib/zapper'
+
+  try
+    config = require path.resolve CWD, (options.config || DEFAULT_CONFIG)
+
+    if typeof config is 'function'
+      options = config.call options, options
+    else
+      options[option] = value for option, value of config when option not of options
+
+  catch e
+    if 'config' of options
+      console.error "Couldn't read config file '#{ options.config }'"
+      process.exit 1
+
+  { _: [remoteFromArgs] } = options
+
+  remote = remoteFromArgs || path.basename CWD
+
+  [bucketFromRemote, prefixesFromRemote...] = remote.split path.sep
+  prefixFromRemote = prefixesFromRemote.join path.sep
+
+  bucket = (options.bucket || bucketFromRemote).replace /^\/|\/$/g, ''
+  prefix = (options.prefix || prefixFromRemote).replace /^\/|\/$/g, ''
+  
+  zapper = new Zapper { bucket, prefix, options }
+  zapper.go()

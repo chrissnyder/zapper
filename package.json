@@ -1,0 +1,15 @@
+{
+  "name": "zapper",
+  "version": "0.0.4",
+  "bin": {
+    "zapper": "./bin/zapper"
+  },
+  "dependencies": {
+    "coffee-script": "~1.6.3",
+    "aws-sdk": "~1.7.0",
+    "optimist": "~0.6.0",
+    "jsdom": "~0.8.8",
+    "async": "~0.2.9",
+    "colors": "~0.6.2"
+  }
+}
